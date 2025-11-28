@@ -107,21 +107,29 @@ else:
 
 # ...
 
-if os.getenv('DATABASE_URL'):
+# Database Configuration
+# Try to get DATABASE_URL or MYSQL_URL (Railway default for MySQL)
+database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
+
+if database_url:
     # Production (Railway)
     DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
 else:
     # Local Development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER'),
-            'PASSWORD': os.getenv('DB_PASS'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT'),
+            'NAME': os.getenv('DB_NAME', 'nuam_db'),
+            'USER': os.getenv('DB_USER', 'root'),
+            'PASSWORD': os.getenv('DB_PASS', ''),
+            'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('DB_PORT', '3306'),
         }
     }
 
