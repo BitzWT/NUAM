@@ -41,9 +41,27 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware', # Add WhiteNoise
     'django.contrib.sessions.middleware.SessionMiddleware',
     # ...
+    # ...
 ]
 
-# ...
+ROOT_URLCONF = 'nuamSettings.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'nuamSettings.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:5174').split(',')
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
