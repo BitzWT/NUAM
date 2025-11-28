@@ -108,17 +108,33 @@ else:
 # ...
 
 # Database Configuration
-# Try to get DATABASE_URL or MYSQL_URL (Railway default for MySQL)
+# 1. Try DATABASE_URL (Standard)
+# 2. Try MYSQL_URL (Railway MySQL)
+# 3. Try individual MYSQL_* variables (Railway MySQL alternative)
+# 4. Fallback to Local Development
+
 database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
 
 if database_url:
-    # Production (Railway)
+    # Production (URL based)
     DATABASES = {
         'default': dj_database_url.parse(
             database_url,
             conn_max_age=600,
             ssl_require=True
         )
+    }
+elif os.getenv('MYSQLHOST'):
+    # Production (Individual Variables)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('MYSQLDATABASE', os.getenv('MYSQL_DATABASE')),
+            'USER': os.getenv('MYSQLUSER', os.getenv('MYSQL_USER')),
+            'PASSWORD': os.getenv('MYSQLPASSWORD', os.getenv('MYSQL_PASSWORD')),
+            'HOST': os.getenv('MYSQLHOST', os.getenv('MYSQL_HOST')),
+            'PORT': os.getenv('MYSQLPORT', os.getenv('MYSQL_PORT')),
+        }
     }
 else:
     # Local Development
