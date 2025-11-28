@@ -98,6 +98,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'nuamSettings.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:5174').split(',')
+CORS_ALLOW_CREDENTIALS = True
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
 if csrf_origins:
     CSRF_TRUSTED_ORIGINS = csrf_origins.split(',')
