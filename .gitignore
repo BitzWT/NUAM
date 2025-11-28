@@ -1,0 +1,13 @@
+# Agent & System
+.agent/
+.gemini/
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Project specific
+project_context.md
+TESTING.md
+nuam_postman_collection.json
