@@ -182,4 +182,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://nuam-dev.netlify.app')
