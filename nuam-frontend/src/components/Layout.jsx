@@ -7,15 +7,18 @@ const Layout = () => {
     const location = useLocation();
 
     const navItems = [
-        { path: "/dashboard", label: "Dashboard", icon: "📊", roles: ["admin", "analista", "editor", "auditor"] },
-        { path: "/calificaciones", label: "Calificaciones", icon: "📝", roles: ["admin", "analista", "editor", "auditor"] },
-        { path: "/empresas", label: "Empresas", icon: "🏢", roles: ["admin", "analista", "editor"] },
-        { path: "/propietarios", label: "Propietarios", icon: "👥", roles: ["admin", "analista", "editor"] },
-        { path: "/historial", label: "Historial", icon: "⏰", roles: ["admin", "analista", "editor", "auditor"] },
-        { path: "/certificados", label: "Certificados", icon: "📄", roles: ["admin", "analista", "editor"] },
-        { path: "/carga-masiva", label: "Carga Masiva", icon: "📤", roles: ["admin", "analista", "editor"] },
+        { path: "/dashboard", label: "Dashboard", icon: "📊", roles: ["admin", "tributario", "auditor"] },
+        { path: "/corredor/dashboard", label: "Dashboard Corredor", icon: "📊", roles: ["corredor"] },
+        { path: "/calificaciones", label: "Calificaciones", icon: "📝", roles: ["admin", "tributario", "auditor", "corredor"] },
+        { path: "/empresas", label: "Empresas", icon: "🏢", roles: ["admin", "tributario", "corredor"] },
+        { path: "/propietarios", label: "Propietarios", icon: "👥", roles: ["admin", "tributario"] },
+        { path: "/historial", label: "Historial", icon: "⏰", roles: ["admin", "auditor"] },
+        { path: "/certificados", label: "Certificados", icon: "📄", roles: ["admin", "tributario"] },
+        { path: "/carga-masiva", label: "Carga Masiva", icon: "📤", roles: ["admin", "tributario"] },
         { path: "/users", label: "Gestión Usuarios", icon: "👤", roles: ["admin"] },
-        { path: "/mfa-setup", label: "Configurar MFA", icon: "🔒", roles: ["admin", "analista", "editor", "auditor"] },
+        { path: "/informe-gestion", label: "Informe de Gestión", icon: "📄", roles: ["admin", "tributario", "corredor"] },
+        { path: "/mfa-setup", label: "Configurar MFA", icon: "🔒", roles: ["admin", "tributario", "auditor", "corredor"] },
+        { path: "/corredores", label: "Gestión Corredores", icon: "🤝", roles: ["admin", "tributario"] },
     ];
 
     const filteredNavItems = navItems.filter(item => item.roles.includes(user?.role));

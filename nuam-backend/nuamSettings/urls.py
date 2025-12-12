@@ -16,12 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from calificaciones.views import health
+from calificaciones.views import health, dashboard_stats
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
-from calificaciones.views import CalificacionTributariaViewSet, EmpresaViewSet, PropietarioViewSet, AuditoriaViewSet, Certificado70ViewSet, AccionViewSet
+from calificaciones.views import CalificacionTributariaViewSet, EmpresaViewSet, PropietarioViewSet, AuditoriaViewSet, Certificado70ViewSet, AccionViewSet, CorredorViewSet
 
-from core.user_views import UserViewSet
+from core.user_views import UserViewSet, MeView
 
 router = DefaultRouter()
 router.register("calificaciones", CalificacionTributariaViewSet, basename="calificaciones")
@@ -31,16 +31,21 @@ router.register("auditoria", AuditoriaViewSet, basename="auditoria")
 router.register("users", UserViewSet, basename="users")
 router.register("certificados70", Certificado70ViewSet, basename="certificados70")
 router.register("acciones", AccionViewSet, basename="acciones")
+router.register("corredores", CorredorViewSet, basename="corredores")
 
 from django.urls import path, include
 
 from core.mfa_views import SetupMFAView, VerifyMFAView, LoginMFAView, LoginVerifyView
-from calificaciones.bulk_upload_views import BulkUploadView
+from calificaciones.bulk_upload_views import BulkUploadView, PDFUploadView, BulkCreateView
+from calificaciones.views import InformeGestionView
 from core.register_view import RegisterView
+from core.password_reset_views import RequestPasswordResetView, ResetPasswordConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health/', health),
+    path("api/dashboard/stats/", dashboard_stats),
+    path("api/reports/gestion/", InformeGestionView.as_view()), # Informe de Gestion
     path("api/token/", TokenObtainPairView.as_view()),
     path("api/token/refresh/", TokenRefreshView.as_view()),
     
@@ -49,12 +54,20 @@ urlpatterns = [
     path("api/auth/login/", LoginMFAView.as_view()),
     path("api/auth/login/verify/", LoginVerifyView.as_view()),
 
+    # Password Reset
+    path("api/auth/password-reset/", RequestPasswordResetView.as_view()),
+    path("api/auth/password-reset/confirm/", ResetPasswordConfirmView.as_view()),
+
     # MFA Endpoints
     path("api/mfa/setup/", SetupMFAView.as_view()),
     path("api/mfa/verify/", VerifyMFAView.as_view()),
+    
+    path("api/auth/me/", MeView.as_view()),
 
     # Bulk Upload
     path("api/calificaciones/upload/", BulkUploadView.as_view()),
+    path("api/calificaciones/upload-pdf/", PDFUploadView.as_view()),
+    path("api/calificaciones/create-bulk/", BulkCreateView.as_view()),
 
     path("api/", include(router.urls)),
 ]

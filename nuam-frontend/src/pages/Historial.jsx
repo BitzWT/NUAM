@@ -6,14 +6,23 @@ const Historial = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
     useEffect(() => {
         fetchAuditoria();
-    }, []);
+    }, [startDate, endDate]); // Refresh when filters change? Or add "Filter" button? Refreshing implies many API calls. Better add "Filtrar" button?
+    // User requested "filter of date". Live update is nicer usually if cheap.
+    // Let's stick to live update but maybe debounce or just let it trigger.
 
     const fetchAuditoria = async () => {
+        setLoading(true);
         try {
-            const response = await api.get("/auditoria/");
+            let query = "/auditoria/?";
+            if (startDate) query += `start_date=${startDate}&`;
+            if (endDate) query += `end_date=${endDate}&`;
+
+            const response = await api.get(query);
             setAuditoria(response.data);
             setLoading(false);
         } catch (err) {
@@ -28,7 +37,11 @@ const Historial = () => {
 
     const handleExport = async (type) => {
         try {
-            const response = await api.get(`/auditoria/export_${type}/`, {
+            let query = `/auditoria/export_${type}/?`;
+            if (startDate) query += `start_date=${startDate}&`;
+            if (endDate) query += `end_date=${endDate}&`;
+
+            const response = await api.get(query, {
                 responseType: 'blob',
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -44,19 +57,49 @@ const Historial = () => {
         }
     };
 
-    if (loading) return <div>Cargando historial...</div>;
+    if (loading && auditoria.length === 0) return <div>Cargando historial...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-3xl font-bold text-gray-800">Historial de Cambios</h1>
+
+                <div className="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div className="flex flex-col">
+                        <label className="text-xs text-gray-500 font-semibold uppercase">Desde</label>
+                        <input
+                            type="date"
+                            className="text-sm bg-white border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs text-gray-500 font-semibold uppercase">Hasta</label>
+                        <input
+                            type="date"
+                            className="text-sm bg-white border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+                    {(startDate || endDate) && (
+                        <button
+                            onClick={() => { setStartDate(""); setEndDate(""); }}
+                            className="text-xs text-red-500 hover:underline"
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
+
                 <div className="space-x-2">
-                    <button onClick={() => handleExport('pdf')} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
-                        PDF
+                    <button onClick={() => handleExport('pdf')} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-sm font-medium">
+                        <i className="fas fa-file-pdf mr-2"></i> PDF
                     </button>
-                    <button onClick={() => handleExport('excel')} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                        Excel
+                    <button onClick={() => handleExport('excel')} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors shadow-sm font-medium">
+                        <i className="fas fa-file-excel mr-2"></i> Excel
                     </button>
                 </div>
             </div>
@@ -76,7 +119,7 @@ const Historial = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {auditoria.map((log) => (
                             <>
-                                <tr key={log.id} className="hover:bg-gray-50">
+                                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {new Date(log.fecha).toLocaleString()}
                                     </td>
@@ -93,14 +136,14 @@ const Historial = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.entidad}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.entidad_id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 cursor-pointer" onClick={() => toggleExpand(log.id)}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer hover:underline" onClick={() => toggleExpand(log.id)}>
                                         {expandedId === log.id ? "Ocultar" : "Ver Detalle"}
                                     </td>
                                 </tr>
                                 {expandedId === log.id && (
-                                    <tr className="bg-gray-50">
+                                    <tr className="bg-gray-50 animate-fadeIn">
                                         <td colSpan="6" className="px-6 py-4">
-                                            <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-60">
+                                            <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-60 border border-gray-200">
                                                 {JSON.stringify(log.detalle, null, 2)}
                                             </pre>
                                         </td>
@@ -110,9 +153,9 @@ const Historial = () => {
                         ))}
                     </tbody>
                 </table>
-                {auditoria.length === 0 && (
+                {auditoria.length === 0 && !loading && (
                     <div className="p-8 text-center text-gray-500">
-                        No hay registros de auditoría.
+                        No hay registros de auditoría {startDate || endDate ? "para las fechas seleccionadas" : ""}.
                     </div>
                 )}
             </div>

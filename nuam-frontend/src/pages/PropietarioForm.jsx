@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import { formatRut, validateRut } from "../utils/validators";
+import AuthContext from "../context/AuthContext";
 
 const PropietarioForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
     const isEditing = !!id;
 
     const [formData, setFormData] = useState({
@@ -19,11 +22,17 @@ const PropietarioForm = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (user?.role === 'corredor' || user?.role === 'tributario') {
+            alert("Acceso restringido: No tienes permiso para editar o crear propietarios.");
+            navigate("/propietarios");
+            return;
+        }
+
         fetchEmpresas();
         if (isEditing) {
             fetchPropietario();
         }
-    }, [id]);
+    }, [id, user]);
 
     const fetchEmpresas = async () => {
         try {
@@ -47,9 +56,15 @@ const PropietarioForm = () => {
     };
 
     const handleChange = (e) => {
+        let { name, value } = e.target;
+
+        if (name === "rut") {
+            value = formatRut(value);
+        }
+
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
     };
 
@@ -59,6 +74,18 @@ const PropietarioForm = () => {
         setError(null);
 
         try {
+            if (!validateRut(formData.rut)) {
+                setError("El RUT ingresado no es válido.");
+                setLoading(false);
+                return;
+            }
+
+            if (formData.porcentaje_participacion && (formData.porcentaje_participacion < 0 || formData.porcentaje_participacion > 100)) {
+                setError("El porcentaje de participación debe estar entre 0 y 100.");
+                setLoading(false);
+                return;
+            }
+
             if (isEditing) {
                 await api.put(`/propietarios/${id}/`, formData);
             } else {

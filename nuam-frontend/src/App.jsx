@@ -19,6 +19,12 @@ import Signup from "./pages/Signup";
 import Users from "./pages/Users";
 import UserForm from "./pages/UserForm";
 import Layout from "./components/Layout";
+import CorredorDashboard from "./pages/CorredorDashboard";
+import CorredorCompanyView from "./pages/CorredorCompanyView";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Corredores from "./pages/Corredores";
+import InformeGestion from "./pages/InformeGestion";
 
 // Protected Route Component
 const ProtectedRoute = () => {
@@ -36,6 +42,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
 
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
@@ -59,10 +67,17 @@ function App() {
               <Route path="/certificados" element={<Certificados />} />
               <Route path="/mfa-setup" element={<MFAConfig />} />
               <Route path="/carga-masiva" element={<BulkUpload />} />
+              <Route path="/informe-gestion" element={<InformeGestion />} />
 
               <Route path="/users" element={<Users />} />
               <Route path="/users/nueva" element={<UserForm />} />
               <Route path="/users/:id" element={<UserForm />} />
+              <Route path="/users/:id" element={<UserForm />} />
+
+              {/* Corredor Routes */}
+              <Route path="/corredores" element={<Corredores />} />
+              <Route path="/corredor/dashboard" element={<CorredorDashboard />} />
+              <Route path="/corredor/empresas/:id" element={<CorredorCompanyView />} />
             </Route>
           </Route>
         </Routes>

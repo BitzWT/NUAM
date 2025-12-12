@@ -31,7 +31,11 @@ const Calificaciones = () => {
 
     const handleExport = async (type) => {
         try {
-            const response = await api.get(`/calificaciones/export_${type}/`, {
+            const params = new URLSearchParams();
+            if (filters.search) params.append("search", filters.search);
+            if (filters.ordering) params.append("ordering", filters.ordering);
+
+            const response = await api.get(`/calificaciones/export_${type}/?${params.toString()}`, {
                 responseType: 'blob',
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -47,6 +51,45 @@ const Calificaciones = () => {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!window.confirm("¿Estás seguro de eliminar esta calificación? Esta acción es irreversible.")) {
+            return;
+        }
+        try {
+            await api.delete(`/calificaciones/${id}/`);
+            setCalificaciones(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+            console.error("Error deleting qualification", err);
+            alert("Error al eliminar la calificación. Verifique sus permisos.");
+        }
+    };
+
+    const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedCalificacion, setSelectedCalificacion] = useState(null);
+    const [reviewData, setReviewData] = useState({ estado: '', observaciones_analista: '' });
+
+    const openReview = (cal) => {
+        setSelectedCalificacion(cal);
+        setReviewData({
+            estado: cal.estado || 'pendiente',
+            observaciones_analista: cal.observaciones_analista || ''
+        });
+        setReviewModalOpen(true);
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/calificaciones/${selectedCalificacion.id}/`, reviewData);
+            setCalificaciones(prev => prev.map(p => p.id === selectedCalificacion.id ? { ...p, ...reviewData } : p));
+            setReviewModalOpen(false);
+            alert("Revisión guardada correctamente.");
+        } catch (err) {
+            console.error("Error saving review", err);
+            alert("Error al guardar la revisión.");
+        }
+    };
+
     if (loading) return <div>Cargando...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
 
@@ -54,7 +97,7 @@ const Calificaciones = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Calificaciones Tributarias</h1>
-                {["admin", "analista", "editor"].includes(user?.role) && (
+                {["admin", "tributario"].includes(user?.role) && (
                     <Link
                         to="/calificaciones/nueva"
                         className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
@@ -83,13 +126,14 @@ const Calificaciones = () => {
                     <option value="-monto_original">Mayor monto</option>
                     <option value="monto_original">Menor monto</option>
                 </select>
-
-                <button onClick={() => handleExport('pdf')} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                    PDF
-                </button>
-                <button onClick={() => handleExport('excel')} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                    Excel
-                </button>
+                <div className="flex gap-2">
+                    <button onClick={() => handleExport('pdf')} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        PDF
+                    </button>
+                    <button onClick={() => handleExport('excel')} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        Excel
+                    </button>
+                </div>
             </div>
 
             {/* Table */}
@@ -129,13 +173,37 @@ const Calificaciones = () => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-sm">
-                                    {["admin", "editor"].includes(user?.role) ? (
-                                        <Link
-                                            to={`/calificaciones/${cal.id}`}
-                                            className="text-red-600 hover:text-red-800 font-medium"
-                                        >
-                                            Editar
-                                        </Link>
+                                    {["admin", "tributario"].includes(user?.role) ? (
+                                        <div className="flex space-x-3">
+                                            {/* Admin can Edit fully */}
+                                            {user?.role === 'admin' && (
+                                                <Link
+                                                    to={`/calificaciones/${cal.id}`}
+                                                    className="text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    Editar
+                                                </Link>
+                                            )}
+
+                                            {/* Analyst can Review (Update Status/Obs) */}
+                                            {user?.role === 'tributario' && (
+                                                <button
+                                                    onClick={() => openReview(cal)}
+                                                    className="text-purple-600 hover:text-purple-800 font-medium"
+                                                >
+                                                    Revisar
+                                                </button>
+                                            )}
+
+                                            {user?.role === 'admin' && (
+                                                <button
+                                                    onClick={() => handleDelete(cal.id)}
+                                                    className="text-red-600 hover:text-red-800 font-medium"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            )}
+                                        </div>
                                     ) : (
                                         <span className="text-gray-400 cursor-not-allowed">Ver</span>
                                     )}
@@ -150,6 +218,53 @@ const Calificaciones = () => {
                     </div>
                 )}
             </div>
+
+            {/* Review Modal */}
+            {isReviewModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Revisión de Calificación</h2>
+                        <form onSubmit={handleReviewSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                <select
+                                    value={reviewData.estado}
+                                    onChange={(e) => setReviewData({ ...reviewData, estado: e.target.value })}
+                                    className="w-full p-2 border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+                                >
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="aprobada">Aprobada</option>
+                                    <option value="rechazada">Rechazada</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                                <textarea
+                                    value={reviewData.observaciones_analista}
+                                    onChange={(e) => setReviewData({ ...reviewData, observaciones_analista: e.target.value })}
+                                    className="w-full p-2 border border-gray-300 rounded h-32 focus:ring-red-500 focus:border-red-500"
+                                    placeholder="Ingrese observaciones, errores encontrados, etc."
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewModalOpen(false)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                                >
+                                    Guardar Revisión
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

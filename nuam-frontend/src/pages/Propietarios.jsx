@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import AuthContext from "../context/AuthContext";
 
 const Propietarios = () => {
+    const { user } = useContext(AuthContext);
     const [propietarios, setPropietarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,9 +31,11 @@ const Propietarios = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Propietarios</h1>
-                <Link to="/propietarios/nueva" className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
-                    + Nuevo Propietario
-                </Link>
+                {user?.role !== 'tributario' && (
+                    <Link to="/propietarios/nueva" className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
+                        + Nuevo Propietario
+                    </Link>
+                )}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -55,7 +59,9 @@ const Propietarios = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{propietario.calidad}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{propietario.porcentaje_participacion ? `${propietario.porcentaje_participacion}%` : '-'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <Link to={`/propietarios/${propietario.id}`} className="text-red-600 hover:text-red-900 mr-4">Editar</Link>
+                                    {user?.role !== 'tributario' && (
+                                        <Link to={`/propietarios/${propietario.id}`} className="text-red-600 hover:text-red-900 mr-4">Editar</Link>
+                                    )}
                                 </td>
                             </tr>
                         ))}

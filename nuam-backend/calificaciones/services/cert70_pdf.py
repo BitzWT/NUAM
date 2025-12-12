@@ -27,7 +27,8 @@ class Cert70PDFGenerator:
         style_bold = ParagraphStyle('Bold', parent=styles['Normal'], fontName='Helvetica-Bold')
 
         # --- SECCIÓN 1: Identificación ---
-        elements.append(Paragraph("Certificado N°70 – Retiros, Remesas o Dividendos", style_title))
+        folio_str = str(self.certificado.folio) if self.certificado.folio else "PROVISORIO"
+        elements.append(Paragraph(f"Certificado N°70 (Folio: {folio_str}) – Retiros, Remesas o Dividendos", style_title))
         elements.append(Spacer(1, 0.2*cm))
         
         header_data = [
@@ -61,10 +62,11 @@ class Cert70PDFGenerator:
 
         # --- SECCIÓN 3: Datos del Socio ---
         prop = self.certificado.propietario
+        pct_str = f"{prop.porcentaje_participacion}%" if prop.porcentaje_participacion else "-"
         prop_data = [
             [Paragraph("<b>SECCIÓN 3: DATOS DEL SOCIO / ACCIONISTA</b>", style_normal)],
             [f"RUT: {prop.rut}", f"Nombre: {prop.nombre}"],
-            [f"Calidad: {prop.calidad or 'N/A'}", f"% Participación: -"],
+            [f"Calidad: {prop.calidad or 'N/A'}", f"% Participación: {pct_str}"],
         ]
         t_prop = Table(prop_data, colWidths=[14*cm, 14*cm])
         t_prop.setStyle(TableStyle([

@@ -105,6 +105,7 @@ class CalificacionTributaria(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
     archivo_origen = models.ForeignKey(ArchivoCargado, on_delete=models.SET_NULL, null=True, blank=True)
+    observaciones_analista = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = "calificaciones_tributarias"
@@ -182,3 +183,17 @@ class Certificado70(models.Model):
 
     def __str__(self):
         return f"Cert70 {self.empresa} - {self.propietario} ({self.anio_comercial})"
+
+
+class Corredor(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="corredor_profile")
+    rut = models.CharField(max_length=12, db_index=True)
+    empresa_corredora = models.CharField(max_length=255)
+    empresas = models.ManyToManyField(Empresa, related_name="corredores", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "corredores"
+
+    def __str__(self):
+        return f"{self.empresa_corredora} ({self.user.username})"
