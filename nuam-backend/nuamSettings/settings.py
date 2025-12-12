@@ -102,8 +102,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'nuamSettings.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:5174').split(',')
-if 'http://localhost:5173' not in CORS_ALLOWED_ORIGINS:
-    CORS_ALLOWED_ORIGINS.append('http://localhost:5173')
+defaults = ['http://localhost:5173', 'https://nuam-dev.netlify.app']
+for origin in defaults:
+    if origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(origin)
 
 CORS_ALLOW_CREDENTIALS = True
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
@@ -112,8 +114,10 @@ if csrf_origins:
 else:
     CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
 
-if 'http://localhost:5173' not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append('http://localhost:5173')
+defaults_csrf = ['http://localhost:5173', 'https://nuam-dev.netlify.app']
+for origin in defaults_csrf:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 # ...
 
