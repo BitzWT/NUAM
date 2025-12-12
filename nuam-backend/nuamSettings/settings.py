@@ -102,12 +102,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'nuamSettings.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:5174').split(',')
+if 'http://localhost:5173' not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append('http://localhost:5173')
+
 CORS_ALLOW_CREDENTIALS = True
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
 if csrf_origins:
     CSRF_TRUSTED_ORIGINS = csrf_origins.split(',')
 else:
     CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
+
+if 'http://localhost:5173' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('http://localhost:5173')
 
 # ...
 
@@ -169,3 +175,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')

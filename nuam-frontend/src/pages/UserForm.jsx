@@ -8,7 +8,7 @@ const UserForm = () => {
     const [formData, setFormData] = useState({
         username: "",
         email: "",
-        role: "analista",
+        role: "tributario",
         password: "",
         is_active: true
     });
@@ -98,10 +98,10 @@ const UserForm = () => {
                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                     >
-                        <option value="analista">Analista Tributario</option>
-                        <option value="editor">Usuario Autorizado (Editor)</option>
-                        <option value="auditor">Auditor</option>
-                        <option value="admin">Administrador</option>
+                        <option value="tributario">Administrador Tributario (Analista)</option>
+                        <option value="auditor">Auditor Interno</option>
+                        <option value="corredor">Corredor de Bolsa</option>
+                        <option value="admin">Administrador General</option>
                     </select>
                 </div>
 

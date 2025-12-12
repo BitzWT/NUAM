@@ -1,14 +1,15 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
     ROLES = (
-        ('admin', 'Administrador'),
-        ('analista', 'Analista Tributario'),
-        ('editor', 'Usuario Autorizado (Editor)'),
-        ('auditor', 'Auditor'),
+        ('admin', 'Administrador General'),
+        ('tributario', 'Administrador Tributario'),
+        ('auditor', 'Auditor Interno'),
+        ('corredor', 'Corredor de Bolsa'),
     )
-    role = models.CharField(max_length=20, choices=ROLES, default='analista')
+    role = models.CharField(max_length=20, choices=ROLES, default='tributario')
 
 class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

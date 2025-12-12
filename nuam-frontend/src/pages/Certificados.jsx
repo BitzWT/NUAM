@@ -162,19 +162,32 @@ const Certificados = () => {
 
                 {generatedCert && (
                     <div className="mt-8 border-t pt-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Certificado Generado</h3>
-                        <div className="bg-gray-50 p-4 rounded border flex justify-between items-center">
-                            <div>
-                                <p className="font-medium">Folio: {generatedCert.id}</p>
-                                <p className="text-sm text-gray-600">Fecha Emisión: {generatedCert.fecha_emision}</p>
+                        {generatedCert.id ? (
+                            <>
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4">Certificado Generado</h3>
+                                <div className="bg-gray-50 p-4 rounded border flex justify-between items-center">
+                                    <div>
+                                        <p className="font-medium">Folio: {generatedCert.folio || generatedCert.id}</p>
+                                        <p className="text-sm text-gray-600">Fecha Emisión: {generatedCert.fecha_emision}</p>
+                                    </div>
+                                    <button
+                                        onClick={handleDownload}
+                                        className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                                    >
+                                        Descargar PDF
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="bg-blue-50 p-4 rounded text-blue-800">
+                                {generatedCert.message || "Proceso completado."}
+                                {generatedCert.count === 0 && (
+                                    <p className="text-sm mt-1">
+                                        No se encontraron movimientos tributarios para los criterios seleccionados. Verifique que existan declaraciones cargadas para el año indicado.
+                                    </p>
+                                )}
                             </div>
-                            <button
-                                onClick={handleDownload}
-                                className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
-                            >
-                                Descargar PDF
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

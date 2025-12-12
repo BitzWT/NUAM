@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import { formatRut, validateRut } from "../utils/validators";
+import AuthContext from "../context/AuthContext";
 
 const EmpresaForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
     const isEditing = !!id;
 
     const [formData, setFormData] = useState({
@@ -21,10 +24,16 @@ const EmpresaForm = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (user?.role === 'tributario' || user?.role === 'corredor') {
+            alert("Acceso restringido: No tiene permisos para crear o editar empresas.");
+            navigate("/empresas");
+            return;
+        }
+
         if (isEditing) {
             fetchEmpresa();
         }
-    }, [id]);
+    }, [id, user]);
 
     const fetchEmpresa = async () => {
         try {
@@ -36,9 +45,15 @@ const EmpresaForm = () => {
     };
 
     const handleChange = (e) => {
+        let { name, value } = e.target;
+
+        if (name === "rut") {
+            value = formatRut(value);
+        }
+
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
     };
 
@@ -48,14 +63,50 @@ const EmpresaForm = () => {
         setError(null);
 
         try {
+            if (!validateRut(formData.rut)) {
+                setError("El RUT ingresado no es válido.");
+                setLoading(false);
+                return;
+            }
+
+            if (formData.capital_propio_tributario && formData.capital_propio_tributario < 0) {
+                setError("El Capital Propio Tributario debe ser positivo.");
+                setLoading(false);
+                return;
+            }
+
+            if (isSpAorSA) {
+                if (formData.total_acciones && formData.total_acciones < 0) {
+                    setError("El Total de Acciones debe ser positivo.");
+                    setLoading(false);
+                    return;
+                }
+                if (formData.valor_nominal && formData.valor_nominal < 0) {
+                    setError("El Valor Nominal debe ser positivo.");
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Prepare data: convert empty strings to null for optional fields
+            const dataToSend = { ...formData };
+            const optionalFields = ["capital_propio_tributario", "inicio_actividades", "total_acciones", "valor_nominal", "regimen_tributario"];
+
+            optionalFields.forEach(field => {
+                if (dataToSend[field] === "") {
+                    dataToSend[field] = null;
+                }
+            });
+
             if (isEditing) {
-                await api.put(`/empresas/${id}/`, formData);
+                await api.put(`/empresas/${id}/`, dataToSend);
             } else {
-                await api.post("/empresas/", formData);
+                await api.post("/empresas/", dataToSend);
             }
             navigate("/empresas");
         } catch (err) {
-            setError("Error al guardar la empresa");
+            console.error(err);
+            setError(err.response?.data ? JSON.stringify(err.response.data) : "Error al guardar la empresa");
             setLoading(false);
         }
     };

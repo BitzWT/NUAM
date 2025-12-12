@@ -10,15 +10,20 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Check if user is logged in (e.g., validate token or check localStorage)
-        const token = localStorage.getItem("access_token");
-        if (token) {
-            // TODO: Validate token or fetch user profile from backend
-            // For now, we simulate a logged-in user to allow access
-            // Ideally, we should decode the token or call /api/me/
-            setUser({ username: "Usuario", role: "admin" });
-        }
-        setLoading(false);
+        const checkUser = async () => {
+            const token = localStorage.getItem("access_token");
+            if (token) {
+                try {
+                    const response = await api.get("/auth/me/");
+                    setUser(response.data);
+                } catch (error) {
+                    console.error("Token invalid or expired", error);
+                    logout();
+                }
+            }
+            setLoading(false);
+        };
+        checkUser();
     }, []);
 
     const login = async (username, password, otp = null, tempToken = null) => {
@@ -40,9 +45,14 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem("refresh_token", response.data.refresh);
 
             // In a real app, you'd decode the token or use the user data from response
-            setUser(response.data.user || { username: username, role: "admin" });
+            const userData = response.data.user || { username: username, role: "admin" };
+            setUser(userData);
 
-            navigate("/dashboard");
+            if (userData.role === 'corredor') {
+                navigate("/corredor/dashboard");
+            } else {
+                navigate("/dashboard");
+            }
             return response.data;
         } catch (error) {
             console.error("Login failed", error);

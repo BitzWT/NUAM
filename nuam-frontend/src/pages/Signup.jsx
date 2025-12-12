@@ -8,7 +8,7 @@ const Signup = () => {
         username: "",
         email: "",
         password: "",
-        role: "analista"
+        role: "tributario"
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -91,8 +91,9 @@ const Signup = () => {
                             onChange={handleChange}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                         >
-                            <option value="analista">Analista</option>
+                            <option value="tributario">Analista</option>
                             <option value="auditor">Auditor</option>
+                            <option value="corredor">Corredor de Bolsa</option>
                             <option value="admin">Administrador</option>
                         </select>
                     </div>

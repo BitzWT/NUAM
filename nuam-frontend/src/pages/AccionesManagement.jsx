@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
+import AuthContext from "../context/AuthContext";
 
 const AccionesManagement = () => {
     const { id } = useParams();
+    const { user } = useContext(AuthContext);
     const [empresa, setEmpresa] = useState(null);
     const [socios, setSocios] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -55,6 +57,15 @@ const AccionesManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            if (formData.cantidad_acciones < 0) {
+                alert("La cantidad de acciones debe ser positiva.");
+                return;
+            }
+            if (formData.valor_nominal && formData.valor_nominal < 0) {
+                alert("El valor nominal debe ser positivo.");
+                return;
+            }
+
             // Check if we are creating or updating.
             // Since we don't have the action ID in the socio list easily (unless we add it), 
             // we might need to query actions first or assume create.
@@ -146,12 +157,14 @@ const AccionesManagement = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{socio.porcentaje_participacion}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{socio.tipo_propiedad || "-"}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button
-                                        onClick={() => handleOpenModal(socio)}
-                                        className="text-blue-600 hover:text-blue-900"
-                                    >
-                                        {socio.cantidad_acciones ? "Editar" : "Asignar"}
-                                    </button>
+                                    {user?.role !== 'corredor' && (
+                                        <button
+                                            onClick={() => handleOpenModal(socio)}
+                                            className="text-blue-600 hover:text-blue-900"
+                                        >
+                                            {socio.cantidad_acciones ? "Editar" : "Asignar"}
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

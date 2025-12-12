@@ -59,7 +59,52 @@ def generate_excel(filename, title, headers, data):
         cleaned_row = [str(item) if item is not None else "" for item in row]
         ws.append(cleaned_row)
 
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
     wb.save(response)
     return response
+
+def generate_error_report(filename, error_context):
+    """
+    Generates an Error Report PDF.
+    error_context: dict with keys 'line', 'reason', 'criterio', 'usuario', 'timestamp'
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    elements.append(Paragraph("INFORME DE ERROR DE CARGA - NUAM", styles['Title']))
+    elements.append(Spacer(1, 20))
+
+    # Error Details
+    data = [
+        ["Campo", "Detalle"],
+        ["Usuario", error_context.get('usuario', 'Sistema')],
+        ["Fecha/Hora", error_context.get('timestamp', '')],
+        ["Archivo", error_context.get('archivo', 'Desconocido')],
+        ["Línea Fallida", str(error_context.get('line', 'N/A'))],
+        ["Motivo del Error", error_context.get('reason', 'Desconocido')],
+        ["Criterio Incumplido", error_context.get('criterio', 'N/A')],
+    ]
+
+    t = Table(data, colWidths=[150, 300])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.darkred),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, 5), (1, 5), colors.mistyrose), # Highlight reason
+    ]))
+    
+    elements.append(t)
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("Este documento certifica que la carga ha sido rechazada por incumplimiento de validaciones tributarias.", styles['Normal']))
+
+    doc.build(elements)
+    
+    buffer.seek(0)
+    # We return bytes, not response, because this might be saved to disk
+    return buffer.getvalue()

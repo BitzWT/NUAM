@@ -63,6 +63,12 @@ const CalificacionForm = () => {
         e.preventDefault();
         setLoading(true);
         try {
+            if (formData.monto_original < 0) {
+                setError("El monto original debe ser positivo.");
+                setLoading(false);
+                return;
+            }
+
             if (isEdit) {
                 await api.put(`/calificaciones/${id}/`, formData);
             } else {
