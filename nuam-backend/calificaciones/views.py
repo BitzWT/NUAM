@@ -457,7 +457,7 @@ def dashboard_stats(request):
     last_7_days = now - timedelta(days=7)
 
     # 1. Calificaciones Vigentes
-    calificaciones_vigentes = CalificacionTributaria.objects.filter(estado='vigente').count()
+    calificaciones_vigentes = CalificacionTributaria.objects.filter(estado__in=['vigente', 'aprobada', 'pendiente']).count()
 
     # 2. Empresas Activas (Total)
     empresas_count = Empresa.objects.count()
